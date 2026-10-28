@@ -277,9 +277,13 @@ if __name__ == "__main__":
 
 ## Output
 <img width="1245" height="817" alt="Screenshot 2026-10-28 075720" src="https://github.com/user-attachments/assets/74490f18-8b9f-4bc0-be81-e6c50150cb99" />
+
 <img width="1447" height="813" alt="Screenshot 2026-10-28 075724" src="https://github.com/user-attachments/assets/5f99cfdc-f5ee-4cca-a3f6-b72c407c06f6" />
+
 <img width="1258" height="757" alt="Screenshot 2026-10-28 075739" src="https://github.com/user-attachments/assets/5bedcbb1-f0e6-4219-b8bf-35048fc69825" />
+
 <img width="1612" height="758" alt="Screenshot 2026-10-28 075755" src="https://github.com/user-attachments/assets/ba0ff518-a033-41f7-b74c-d29c08318a5f" />
+
 <img width="940" height="498" alt="Screenshot 2026-10-28 075801" src="https://github.com/user-attachments/assets/b4be127d-7dc7-4663-88f3-6ca12d2fed22" />
 
 
