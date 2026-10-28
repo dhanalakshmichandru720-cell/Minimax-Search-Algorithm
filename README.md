@@ -105,118 +105,164 @@ end
 ## Programme
 ```
 import time
-import math
 
-board = [["." for _ in range(3)] for _ in range(3)]
+class Game:
+    def __init__(self):
+        self.initialize_game()
 
-def print_board():
-    for row in board:
-        print(" | ".join(row))
-        print("---------")
+    def initialize_game(self):
+        self.current_state = [['.','.','.'],
+                              ['.','.','.'],
+                              ['.','.','.']]
+        self.player_turn = 'X'  # Player X always plays first
 
-def winner(b):
-    lines = b + list(map(list, zip(*b)))
-    lines += [
-        [b[i][i] for i in range(3)],
-        [b[i][2 - i] for i in range(3)]
-    ]
-
-    for line in lines:
-        if line == ["X"] * 3:
-            return -1
-        if line == ["O"] * 3:
-            return 1
-
-    return 0
-
-def minimax(b, maximizing):
-    result = winner(b)
-
-    if result != 0:
-        return result
-
-    if all(cell != "." for row in b for cell in row):
-        return 0
-
-    if maximizing:
-        best = -math.inf
+    def draw_board(self):
         for i in range(3):
             for j in range(3):
-                if b[i][j] == ".":
-                    b[i][j] = "O"
-                    best = max(best, minimax(b, False))
-                    b[i][j] = "."
-        return best
-    else:
-        best = math.inf
+                print('{}|'.format(self.current_state[i][j]), end=" ")
+            print()
+        print()
+
+    def is_valid(self, px, py):
+        if px < 0 or px > 2 or py < 0 or py > 2:
+            return False
+        elif self.current_state[px][py] != '.':
+            return False
+        else:
+            return True
+
+    def is_end(self):
+        # Vertical win
+        for i in range(3):
+            if (self.current_state[0][i] != '.' and
+                self.current_state[0][i] == self.current_state[1][i] and
+                self.current_state[1][i] == self.current_state[2][i]):
+                return self.current_state[0][i]
+
+        # Horizontal win
+        for i in range(3):
+            if (self.current_state[i] == ['X', 'X', 'X']):
+                return 'X'
+            elif (self.current_state[i] == ['O', 'O', 'O']):
+                return 'O'
+
+        # Main diagonal win
+        if (self.current_state[0][0] != '.' and
+            self.current_state[0][0] == self.current_state[1][1] and
+            self.current_state[0][0] == self.current_state[2][2]):
+            return self.current_state[0][0]
+
+        # Second diagonal win
+        if (self.current_state[0][2] != '.' and
+            self.current_state[0][2] == self.current_state[1][1] and
+            self.current_state[0][2] == self.current_state[2][0]):
+            return self.current_state[0][2]
+
+        # Check for a tie
         for i in range(3):
             for j in range(3):
-                if b[i][j] == ".":
-                    b[i][j] = "X"
-                    best = min(best, minimax(b, True))
-                    b[i][j] = "."
-        return best
+                if self.current_state[i][j] == '.':
+                    return None  # Game is still ongoing
 
-def best_move():
-    start = time.time()
-    best_score = -math.inf
-    move = None
+        return '.'  # It's a tie
 
-    for i in range(3):
-        for j in range(3):
-            if board[i][j] == ".":
-                board[i][j] = "O"
-                score = minimax(board, False)
-                board[i][j] = "."
+    def max(self):
+        maxv = -2  # Initial worse case
+        px = None
+        py = None
 
-                if score > best_score:
-                    best_score = score
-                    move = (i, j)
+        result = self.is_end()
+        if result == 'X':
+            return (-1, 0, 0)
+        elif result == 'O':
+            return (1, 0, 0)
+        elif result == '.':
+            return (0, 0, 0)
 
-    elapsed = time.time() - start
-    print(f"Evaluation time: {elapsed:.7f}s")
-    print(f"Recommended move: X = {move[0]}, Y = {move[1]}")
-    return move
+        for i in range(3):
+            for j in range(3):
+                if self.current_state[i][j] == '.':
+                    self.current_state[i][j] = 'O'  # Simulate AI's move
+                    (m, min_i, min_j) = self.min()  # Call min() to evaluate
+                    if m > maxv:
+                        maxv = m
+                        px = i
+                        py = j
+                    self.current_state[i][j] = '.'  # Undo the move
 
-print("TIC-TAC-TOE USING MINIMAX")
-print("You are X. Computer is O.")
-print("Coordinates range from 0 to 2.")
+        return (maxv, px, py)
 
-while True:
-    move = best_move()
-    x = int(input("Insert the X coordinate: "))
-    y = int(input("Insert the Y coordinate: "))
+    def min(self):
+        minv = 2  # Initial worse case
+        qx = None
+        qy = None
 
-    if not (0 <= x < 3 and 0 <= y < 3):
-        print("Invalid coordinates. Try again.")
-        continue
+        result = self.is_end()
+        if result == 'X':
+            return (-1, 0, 0)
+        elif result == 'O':
+            return (1, 0, 0)
+        elif result == '.':
+            return (0, 0, 0)
 
-    if board[x][y] != ".":
-        print("Cell occupied. Try again.")
-        continue
+        for i in range(3):
+            for j in range(3):
+                if self.current_state[i][j] == '.':
+                    self.current_state[i][j] = 'X'  # Simulate player's move
+                    (m, max_i, max_j) = self.max()  # Call max() to evaluate
+                    if m < minv:
+                        minv = m
+                        qx = i
+                        qy = j
+                    self.current_state[i][j] = '.'  # Undo the move
 
-    board[x][y] = "X"
-    print_board()
+        return (minv, qx, qy)
 
-    if winner(board) == -1:
-        print("X wins!")
-        break
+    def play(self):
+        while True:
+            self.draw_board()
+            self.result = self.is_end()
 
-    if all(cell != "." for row in board for cell in row):
-        print("Draw!")
-        break
+            if self.result != None:
+                if self.result == 'X':
+                    print('The winner is X!')
+                elif self.result == 'O':
+                    print('The winner is O!')
+                elif self.result == '.':
+                    print("It's a tie!")
 
-    x, y = best_move()
-    board[x][y] = "O"
-    print_board()
+                self.initialize_game()
+                return
 
-    if winner(board) == 1:
-        print("O wins!")
-        break
+            if self.player_turn == 'X':
+                while True:
+                    start = time.time()
+                    (m, qx, qy) = self.min()
+                    end = time.time()
+                    print('Evaluation time: {}s'.format(round(end - start, 7)))
+                    print('Recommended move: X = {}, Y = {}'.format(qx, qy))
 
-    if all(cell != "." for row in board for cell in row):
-        print("Draw!")
-        break
+                    px = int(input('Insert the X coordinate: '))
+                    py = int(input('Insert the Y coordinate: '))
+
+                    if self.is_valid(px, py):
+                        self.current_state[px][py] = 'X'
+                        self.player_turn = 'O'
+                        break
+                    else:
+                        print('The move is not valid! Try again.')
+
+            else:
+                (m, px, py) = self.max()
+                self.current_state[px][py] = 'O'
+                self.player_turn = 'X'
+
+def main():
+    g = Game()
+    g.play()
+
+if __name__ == "__main__":
+    main()
 ```
 <hr>
 <h2>Sample Input and Output</h2>
@@ -230,11 +276,12 @@ while True:
 <hr>
 
 ## Output
-<img width="1259" height="669" alt="image" src="https://github.com/user-attachments/assets/312b2dd7-61e0-436f-bf6a-4ec6061a228d" />
+<img width="1245" height="817" alt="Screenshot 2026-10-28 075720" src="https://github.com/user-attachments/assets/74490f18-8b9f-4bc0-be81-e6c50150cb99" />
+<img width="1447" height="813" alt="Screenshot 2026-10-28 075724" src="https://github.com/user-attachments/assets/5f99cfdc-f5ee-4cca-a3f6-b72c407c06f6" />
+<img width="1258" height="757" alt="Screenshot 2026-10-28 075739" src="https://github.com/user-attachments/assets/5bedcbb1-f0e6-4219-b8bf-35048fc69825" />
+<img width="1612" height="758" alt="Screenshot 2026-10-28 075755" src="https://github.com/user-attachments/assets/ba0ff518-a033-41f7-b74c-d29c08318a5f" />
+<img width="940" height="498" alt="Screenshot 2026-10-28 075801" src="https://github.com/user-attachments/assets/b4be127d-7dc7-4663-88f3-6ca12d2fed22" />
 
-<img width="1020" height="638" alt="image" src="https://github.com/user-attachments/assets/de49a025-fe39-414e-aa36-bd8be2095252" />
-
-<img width="660" height="209" alt="image" src="https://github.com/user-attachments/assets/2ccc7f73-ee21-4851-b6fb-6ad749bf7751" />
 
 <h2>Result:</h2>
 <p>Thus,Implementation of  Minimax Search Algorithm for a Simple TIC-TAC-TOE game wasa done successfully.</p>
